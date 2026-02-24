@@ -70,11 +70,11 @@ def write_resources(
         return
 
     if split:
-        group_dir = out_dir / group
-        group_dir.mkdir(parents=True, exist_ok=True)
+        kind_dir = out_dir / f"{plural}.{suffix}"
+        kind_dir.mkdir(parents=True, exist_ok=True)
         for item in filtered_items:
             cr_name = item["metadata"]["name"]
-            output = group_dir / f"{cr_name}.yaml"
+            output = kind_dir / f"{cr_name}.yaml"
             with output.open("w", encoding="utf-8") as handle:
                 yaml.safe_dump(item, handle, sort_keys=False)
             print(f"Wrote {output}")

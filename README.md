@@ -35,12 +35,12 @@ eda-resources/
     <plural>.<group-suffix>.yaml
 ```
 
-**With `--split`** (one file per CR, grouped by API group):
+**With `--split`** (one file per CR, one folder per resource kind):
 
 ```
 eda-resources/
   <namespace>/
-    <group>/
+    <plural>.<group-suffix>/
       <cr-name>.yaml
 ```
 
@@ -49,10 +49,10 @@ For example, with `--split --namespace eda`:
 ```
 eda-resources/
   eda/
-    core.eda.nokia.com/
+    interfaces.core.nokia.com/
       my-interface.yaml
       another-interface.yaml
-    fabric.eda.nokia.com/
+    fabrics.core.nokia.com/
       my-fabric.yaml
 ```
 
