@@ -36,7 +36,7 @@ def get_eda_crd_resources(group_suffix: str) -> list[str]:
 
 
 def write_resources(
-    resource: str, namespace: str, out_dir: Path, set_namespace: str | None
+    resource: str, namespace: str, out_dir: Path, set_namespace: str | None, split: bool = False
 ) -> None:
     data = run_kubectl(["get", resource, "-n", namespace, "-o", "json"])
     items = data.get("items", [])
@@ -44,8 +44,8 @@ def write_resources(
         return
 
     plural = resource.split(".", 1)[0]
-    suffix = resource.split(".", 1)[1].replace("eda.", "", 1)
-    output = out_dir / f"{plural}.{suffix}.yaml"
+    group = resource.split(".", 1)[1]
+    suffix = group.replace("eda.", "", 1)
 
     filtered_items = []
     for item in items:
@@ -69,13 +69,23 @@ def write_resources(
     if not filtered_items:
         return
 
-    with output.open("w", encoding="utf-8") as handle:
-        for index, item in enumerate(filtered_items):
-            if index:
-                handle.write("---\n")
-            yaml.safe_dump(item, handle, sort_keys=False)
-
-    print(f"Wrote {output}")
+    if split:
+        group_dir = out_dir / group
+        group_dir.mkdir(parents=True, exist_ok=True)
+        for item in filtered_items:
+            cr_name = item["metadata"]["name"]
+            output = group_dir / f"{cr_name}.yaml"
+            with output.open("w", encoding="utf-8") as handle:
+                yaml.safe_dump(item, handle, sort_keys=False)
+            print(f"Wrote {output}")
+    else:
+        output = out_dir / f"{plural}.{suffix}.yaml"
+        with output.open("w", encoding="utf-8") as handle:
+            for index, item in enumerate(filtered_items):
+                if index:
+                    handle.write("---\n")
+                yaml.safe_dump(item, handle, sort_keys=False)
+        print(f"Wrote {output}")
 
 
 def main() -> int:
@@ -98,6 +108,11 @@ def main() -> int:
         action="store_true",
         help="Create a tar.gz archive of exported resources",
     )
+    parser.add_argument(
+        "--split",
+        action="store_true",
+        help="Write one file per CR (named <cr-name>.yaml) under a folder per group",
+    )
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir) / args.namespace
@@ -113,7 +128,7 @@ def main() -> int:
         list(
             executor.map(
                 lambda r: write_resources(
-                    r, args.namespace, out_dir, args.set_namespace
+                    r, args.namespace, out_dir, args.set_namespace, args.split
                 ),
                 resources,
             )

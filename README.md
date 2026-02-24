@@ -18,11 +18,43 @@ This command will fetch all EDA resources from the specified namespace and save 
 
 ### Flags
 
-- `--namespace` (required): The namespace from which to fetch EDA resources.
-- `--output-dir` (optional): The directory where the fetched resources will be saved. Default is `eda-resources`.
+- `--namespace` (optional): The namespace from which to fetch EDA resources. Default is `eda`.
+- `--out-dir` (optional): The directory where the fetched resources will be saved. Default is `eda-resources`.
 - `--archive` (optional): If set, the fetched resources will be saved in a tar.gz archive next to the files in a directory.
 - `--set-namespace` (optional): If set, the namespace of the fetched resources will be changed to the specified namespace. This is useful when applying the resources to a different namespace.
 - `--group` (optional): The group of the resource to fetch. If not specified, all EDA resources (containing `.eda.nokia.com` in their API group) will be fetched.
+- `--split` (optional): If set, resources are written one file per CR instead of one file per kind. Each CR is saved as `<cr-name>.yaml` inside a subdirectory named after its API group.
+
+### Output structure
+
+**Default** (one file per resource kind):
+
+```
+eda-resources/
+  <namespace>/
+    <plural>.<group-suffix>.yaml
+```
+
+**With `--split`** (one file per CR, grouped by API group):
+
+```
+eda-resources/
+  <namespace>/
+    <group>/
+      <cr-name>.yaml
+```
+
+For example, with `--split --namespace eda`:
+
+```
+eda-resources/
+  eda/
+    core.eda.nokia.com/
+      my-interface.yaml
+      another-interface.yaml
+    fabric.eda.nokia.com/
+      my-fabric.yaml
+```
 
 ## Applying Fetched Resources
 
